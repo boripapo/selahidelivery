@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Бургер-доставка</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #fefae0;
+    }
+    header {
+      background: #7b5e57;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+    footer {
+      background: #7b5e57;
+      color: white;
+      text-align: center;
+      padding: 1rem;
+      width: 100%;
+      margin: 0 auto;
+    }
+    h2.category {
+      width: 100%;
+      color: #6d4c41;
+      padding-left: 1rem;
+      text-align: center;
+    }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      padding: 1rem;
+      gap: 1rem;
+      max-width: 1200px;
+      margin: auto;
+    }
+    .product-card {
+      background: #fffaf0;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      width: calc(33% - 1rem);
+      padding: 1rem;
+      transition: transform 0.1s ease;
+    }
+    .product-card:active {
+      transform: scale(0.97);
+    }
+    .product-card img {
+      width: 100%;
+      border-radius: 5px;
+    }
+    .product-card h3,
+    .product-card p {
+      margin: 0.5rem 0;
+    }
+    .product-card button {
+      background: #a47148;
+      color: white;
+      border: none;
+      padding: 0.5rem;
+      width: 100%;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: transform 0.1s ease;
+    }
+    .product-card button:active {
+      transform: scale(0.95);
+    }
+    .cart {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 300px;
+      height: 100%;
+      background: #fffaf0;
+      box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+      padding: 1rem;
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      z-index: 1000;
+    }
+    .cart.visible {
+      transform: translateX(0);
+    }
+    .cart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    .cart-header h2 {
+      margin: 0;
+    }
+    #close-cart {
+      background: transparent;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+    .customer-info input,
+    .customer-info textarea,
+    .customer-info select {
+      width: 100%;
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .cart ul {
+      list-style: none;
+      padding: 0;
+      flex-grow: 1;
+      overflow-y: auto;
+      max-height: 40%;
+      margin-bottom: 0.5rem;
+    }
+    .cart li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    .cart li button {
+      background: transparent;
+      border: none;
+      color: #a47148;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-left: 0.5rem;
+    }
+    #order-button {
+      background: #6d4c41;
+      color: white;
+      border: none;
+      padding: 0.5rem;
+      width: 100%;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+      margin-top: 0.5rem;
+      transition: transform 0.1s ease;
+    }
+    #order-button:active {
+      transform: scale(0.95);
+    }
+    #cart-toggle {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      background: #a47148;
+      color: white;
+      border: none;
+      padding: 0.5rem;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.2rem;
+      z-index: 900;
+    }
+    #cart-count {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: #6d4c41;
+      color: white;
+      border-radius: 50%;
+      padding: 2px 6px;
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+<div class="page-wrapper">
+    <header>
+      <h1>Selahi Delivery</h1>
+    </header>
+    <button id="cart-toggle">
+      🛒 <span id="cart-count">0</span>
+    </button>
+
+    <h2 class="category">Бургеры</h2>
+    <div class="container" id="burgers"></div>
+    <h2 class="category">Добавки</h2>
+    <div class="container" id="sides"></div>
+    <h2 class="category">Напитки</h2>
+    <div class="container" id="drinks"></div>
+
+    <div class="cart" id="cart">
+      <div class="cart-header">
+        <h2>Ваша корзина</h2>
+        <button id="close-cart">✖</button>
+      </div>
+      <div class="customer-info">
+      <input type="text" id="customer-name" placeholder="Ваше имя" maxlength="30" required>
+      <input type="tel" id="customer-phone" placeholder="Номер телефона" required>
+      <textarea id="customer-address" placeholder="Адрес доставки" rows="2" required></textarea>
+      <textarea id="customer-comment" placeholder="Комментарий к заказу (необязательно)" rows="2"></textarea>
+      <label for="payment-method">Способ оплаты</label>
+      <select id="payment-method" required>
+        <option value="CASH">Наличными</option>
+        <option value="CARD">Картой курьеру</option>
+      </select>
+    </div>
+    <ul id="cart-items"></ul>
+    <p id="cart-total">Итог: 0 BYN</p>
+    <button id="order-button">Оформить заказ</button>
+  </div>
+  </div>
+
+  <footer>
+    <p>Телефон: <a href="tel:+1234567890" style="color:#d7ccc8;text-decoration:none;">+1234567890</a></p>
+    <p>Адрес: ул. Московская 267</p>
+  </footer>
+<script>
+  const products = {
+      burgers: [
+        { id: 1, name: "Классик Бургер", price: 12.5, img: "https://via.placeholder.com/300x200" },
+        { id: 2, name: "Чизбургер", price: 14.0, img: "https://via.placeholder.com/300x200" },
+        { id: 3, name: "Бекон Бургер", price: 15.5, img: "https://via.placeholder.com/300x200" }
+      ],
+      sides: [
+        { id: 4, name: "Картошка фри", price: 5.0, img: "https://via.placeholder.com/300x200" },
+        { id: 5, name: "Сырные палочки", price: 6.5, img: "https://via.placeholder.com/300x200" }
+      ],
+      drinks: [
+        { id: 6, name: "Кола 0.5л", price: 3.0, img: "https://via.placeholder.com/300x200" },
+        { id: 7, name: "Сок апельсиновый", price: 3.5, img: "https://via.placeholder.com/300x200" }
+      ]
+    };
+
+    const cartToggle = document.getElementById("cart-toggle");
+    const closeCart = document.getElementById("close-cart");
+    const cart = document.getElementById("cart");
+    const cartItems = document.getElementById("cart-items");
+    const cartTotal = document.getElementById("cart-total");
+    const cartCount = document.getElementById("cart-count");
+    const orderButton = document.getElementById("order-button");
+
+    let cartData = [];
+
+    function renderProducts(category, containerId) {
+      const container = document.getElementById(containerId);
+      products[category].forEach(p => {
+        const div = document.createElement("div");
+        div.className = "product-card";
+        div.innerHTML = `
+          <img src="${p.img}" alt="${p.name}" />
+          <h3>${p.name}</h3>
+          <p>${p.price.toFixed(2)} BYN</p>
+          <button onclick='addToCart(${JSON.stringify(p)})'>Добавить в корзину</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function addToCart(product) {
+      const existingItem = cartData.find(item => item.id === product.id);
+      if (existingItem) {
+        existingItem.quantity += 1;
+      } else {
+        cartData.push({ ...product, quantity: 1 });
+      }
+      updateCart();
+    }
+
+    function updateCart() {
+      cartItems.innerHTML = "";
+      let total = 0;
+      let count = 0;
+      cartData.forEach((item, index) => {
+        total += item.price * item.quantity;
+        count += item.quantity;
+        const li = document.createElement("li");
+        li.innerHTML = `${item.name} x ${item.quantity} - ${(item.price * item.quantity).toFixed(2)} BYN <button onclick="removeFromCart(${index})">✖</button>`;
+        cartItems.appendChild(li);
+      });
+      cartTotal.innerText = `Итог: ${total.toFixed(2)} BYN`;
+      cartCount.innerText = count;
+    }
+
+    function removeFromCart(index) {
+      if (cartData[index].quantity > 1) {
+        cartData[index].quantity -= 1;
+      } else {
+        cartData.splice(index, 1);
+      }
+      updateCart();
+    }
+
+    cartToggle.addEventListener("click", () => cart.classList.add("visible"));
+    closeCart.addEventListener("click", () => cart.classList.remove("visible"));
+
+    orderButton.addEventListener("click", () => {
+      const name = document.getElementById("customer-name").value.trim();
+      const phone = document.getElementById("customer-phone").value.trim();
+      const address = document.getElementById("customer-address").value.trim();
+      const comment = document.getElementById("customer-comment").value.trim();
+      const paymentMethod = document.getElementById("payment-method").value.trim();
+
+      const nameRegex = /^[А-Яа-яЁёA-Za-z\s]{1,30}$/;
+      const phoneRegex = /^\+375\d{9}$/;
+
+      if (cartData.length === 0) {
+        alert("Ваша корзина пуста — добавьте хотя бы один товар перед оформлением заказа.");
+        return;
+      }
+      if (!name || !phone || !address) {
+        alert("Пожалуйста, заполните все обязательные поля.");
+        return;
+      }
+      if (!nameRegex.test(name)) {
+        alert("Имя должно содержать только буквы и быть не длиннее 30 символов.");
+        return;
+      }
+      if (!phoneRegex.test(phone)) {
+        alert("Введите корректный номер телефона в формате +375XXXXXXXXX.");
+        return;
+      }
+
+      const order = {
+        name,
+        phone,
+        address,
+        comment,
+	    paymentMethod,
+        items: cartData
+      };
+
+      fetch("/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(order)
+      })
+      .then(res => res.ok ? alert("Заказ оформлен!") : alert("Ошибка при оформлении заказа"))
+      .catch(() => alert("Ошибка сети"));
+    });
+
+    renderProducts("burgers", "burgers");
+    renderProducts("sides", "sides");
+    renderProducts("drinks", "drinks");
+  </script>
+</body>
+</html>
