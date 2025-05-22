@@ -11,8 +11,8 @@ def admin_order_process_kb(order_id: int):
 
     return builder.as_markup()
 
-def admin_courier_assign_kb(order_id: int):
-    builder = InlineKeyboardBuilder()
-    available_couriers = db.get_available_couriers()
-    for courier in available_couriers:
-        builder.button(text=f"{courier["name"]}", callback_data=f"assign_{courier["courier_id"]}")
+# def admin_courier_assign_kb(order_id: int):
+#     builder = InlineKeyboardBuilder()
+#     available_couriers = db.get_available_couriers()
+#     for courier in available_couriers:
+#         builder.button(text=f"{courier["name"]}", callback_data=f"assign_{courier["courier_id"]}")

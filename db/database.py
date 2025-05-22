@@ -58,6 +58,7 @@ class Database:
             """,
             status.value, courier_id, order_id
             )
+
     async def get_available_couriers(self):
         async with self.pool.acquire() as connection:
             result = await connection.fetch(
@@ -65,3 +66,10 @@ class Database:
                 CourierStatus.AVAILABLE
             )
         return result
+
+    async def get_all_couriers(self):
+        async with self.pool.acquire() as connection:
+            result = await connection.fetch(
+                "SELECT * FROM couriers"
+            )
+            return result
