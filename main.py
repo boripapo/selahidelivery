@@ -1,8 +1,9 @@
 import asyncio
+import logging
 
 from aiogram.types import BotCommand, BotCommandScopeDefault
 
-from create_bot import bot, admins, dp
+from create_bot import bot, admins, dp, db
 from handlers import commands, admin_panel, courier_panel
 from services.notify_admin_loop import notify_admin_loop
 
@@ -35,10 +36,18 @@ async def main():
     dp.startup.register(start_bot)
     dp.shutdown.register(stop_bot)
     try:
+        await db.create_pool()
+
         #task = asyncio.create_task(notify_admin_loop())
+
         await bot.delete_webhook(drop_pending_updates=True)
         await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
+    except Exception as e:
+        logging.exception(f"{e}")
     finally:
+        await db.close_pool()
+
         await bot.session.close()
 
-asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())

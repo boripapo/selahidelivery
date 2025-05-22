@@ -4,7 +4,7 @@ from aiogram.utils.keyboard import ReplyKeyboardBuilder
 def admin_kb():
     builder = ReplyKeyboardBuilder()
 
-    builder.button(text="📃 Получить список пользователей")
+    builder.button(text="🆕 Получить список новых заказов")
 
     builder.adjust(2,2)
 
