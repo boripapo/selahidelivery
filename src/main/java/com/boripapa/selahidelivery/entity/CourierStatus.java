@@ -1,7 +1,7 @@
 package com.boripapa.selahidelivery.entity;
 
 public enum CourierStatus {
-    AVAILABLE,
-    ON_DELIVERY,
-    UNAVAILABLE
+    AVAILABLE, //Доступен, свободный, на смене
+    ON_DELIVERY, //Занят доставкой
+    UNAVAILABLE //Недоступен, занят, не на смене
 }

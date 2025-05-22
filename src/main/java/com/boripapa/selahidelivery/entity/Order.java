@@ -25,6 +25,10 @@ public class Order {
     private String address;
     private String comment;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "courier_id")
+    private Courier courier;
+
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
 

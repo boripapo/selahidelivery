@@ -22,4 +22,5 @@ public class Courier {
 
     @Enumerated(EnumType.STRING)
     private CourierStatus status;
+
 }
