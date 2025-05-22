@@ -4,6 +4,7 @@ import com.boripapa.selahidelivery.dto.OrderRequest;
 import com.boripapa.selahidelivery.entity.Order;
 import com.boripapa.selahidelivery.entity.OrderItem;
 import com.boripapa.selahidelivery.entity.PaymentMethod;
+import com.boripapa.selahidelivery.entity.OrderStatus;
 import com.boripapa.selahidelivery.repository.OrderRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +27,7 @@ public class OrderService {
         order.setAddress(req.getAddress());
         order.setComment(req.getComment());
         order.setPaymentMethod(PaymentMethod.valueOf(req.getPaymentMethod()));
+        order.setStatus(OrderStatus.NEW);
 
         var items = req.getItems().stream().map(i -> {
             OrderItem item = new OrderItem();
