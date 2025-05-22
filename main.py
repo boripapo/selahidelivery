@@ -4,6 +4,7 @@ from aiogram.types import BotCommand, BotCommandScopeDefault
 
 from create_bot import bot, admins, dp
 from handlers import commands, admin_panel, courier_panel
+from services.notify_admin_loop import notify_admin_loop
 
 
 async def set_commands():
@@ -34,6 +35,7 @@ async def main():
     dp.startup.register(start_bot)
     dp.shutdown.register(stop_bot)
     try:
+        #task = asyncio.create_task(notify_admin_loop())
         await bot.delete_webhook(drop_pending_updates=True)
         await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
     finally:

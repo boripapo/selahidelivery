@@ -1,3 +1,4 @@
 aiogram
 APScheduler
 python-decouple
+asyncpg
