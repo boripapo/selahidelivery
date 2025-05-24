@@ -9,6 +9,7 @@ import com.boripapa.selahidelivery.repository.OrderRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,6 +23,7 @@ public class OrderService {
     @Transactional
     public Order createOrder(OrderRequest req) {
         Order order = new Order();
+        order.setCreatedAt(LocalDateTime.now());
         order.setName(req.getName());
         order.setPhone(req.getPhone());
         order.setAddress(req.getAddress());
