@@ -8,7 +8,8 @@ from handlers import commands, admin_panel, courier_panel, util_handlers
 
 async def set_commands():
     commands = [BotCommand(command="start", description="Старт"),
-                BotCommand(command="menu", description="Меню")]
+                BotCommand(command="menu", description="Меню"),
+                BotCommand(command="about", description="О боте")]
     await bot.set_my_commands(commands, BotCommandScopeDefault())
 
 async def start_bot():
