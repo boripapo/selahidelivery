@@ -121,7 +121,7 @@
       padding: 0;
       flex-grow: 1;
       overflow-y: auto;
-      max-height: 40%;
+      max-height: 30%;
       margin-bottom: 0.5rem;
     }
     .cart li {
@@ -137,6 +137,106 @@
       font-size: 1rem;
       cursor: pointer;
       margin-left: 0.5rem;
+    }
+    .qr-section {
+      border: 2px dashed #a47148;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      text-align: center;
+      background: #f8f4f0;
+    }
+    .qr-section h3 {
+      margin: 0 0 0.5rem 0;
+      color: #6d4c41;
+      font-size: 0.9rem;
+    }
+    .qr-upload-btn {
+      background: #a47148;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+      width: 100%;
+    }
+    .qr-upload-btn:hover {
+      background: #8b5a3c;
+    }
+    #qr-file-input {
+      display: none;
+    }
+    .promo-input-container {
+      margin-top: 0.5rem;
+      display: flex;
+      gap: 0.5rem;
+      width: 100%;
+    }
+    .promo-input-container input {
+      flex: 1;
+      min-width: 0;
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+    }
+    .promo-apply-btn {
+      background: #a47148;
+      color: white;
+      border: none;
+      padding: 0.5rem 0.8rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .promo-apply-btn:hover {
+      background: #8b5a3c;
+    }
+    .promo-apply-btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .discount-info {
+      background: #d4e6b7;
+      border: 1px solid #8bc34a;
+      border-radius: 4px;
+      padding: 0.5rem;
+      margin-top: 0.5rem;
+      font-size: 0.8rem;
+      color: #2e7d32;
+    }
+    .discount-info.error {
+      background: #ffcdd2;
+      border-color: #f44336;
+      color: #c62828;
+    }
+    .applied-discount {
+      background: #e8f5e8;
+      border: 1px solid #4caf50;
+      border-radius: 4px;
+      padding: 0.5rem;
+      margin-top: 0.5rem;
+      font-size: 0.8rem;
+      color: #2e7d32;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .remove-discount-btn {
+      background: transparent;
+      border: none;
+      color: #f44336;
+      cursor: pointer;
+      font-size: 0.9rem;
+      padding: 0.2rem;
+    }
+    .remove-discount-btn:hover {
+      color: #d32f2f;
     }
     #order-button {
       background: #6d4c41;
@@ -176,6 +276,13 @@
       padding: 2px 6px;
       font-size: 0.8rem;
     }
+    .loading {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+    .canvas-container {
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -199,27 +306,50 @@
         <h2>Ваша корзина</h2>
         <button id="close-cart">✖</button>
       </div>
-      <div class="customer-info">
-      <input type="text" id="customer-name" placeholder="Ваше имя" maxlength="30" required>
-      <input type="tel" id="customer-phone" placeholder="Номер телефона" required>
-      <textarea id="customer-address" placeholder="Адрес доставки" rows="2" required></textarea>
-      <textarea id="customer-comment" placeholder="Комментарий к заказу (необязательно)" rows="2"></textarea>
-      <label for="payment-method">Способ оплаты</label>
-      <select id="payment-method" required>
-        <option value="CASH">Наличными</option>
-        <option value="CARD">Картой курьеру</option>
-      </select>
-    </div>
-    <ul id="cart-items"></ul>
-    <p id="cart-total">Итог: 0 BYN</p>
-    <button id="order-button">Оформить заказ</button>
-  </div>
-  </div>
+      
+      <div class="qr-section">
+        <h3>🎁 Есть купон со скидкой?</h3>
+        <button class="qr-upload-btn" onclick="document.getElementById('qr-file-input').click()">
+          📷 Загрузить QR-код
+        </button>
+        <input type="file" id="qr-file-input" accept="image/*" />
+        
+        <div class="promo-input-container">
+          <input type="text" id="promo-input" placeholder="Промокод" maxlength="20" />
+          <button class="promo-apply-btn" id="promo-apply-btn">Применить</button>
+        </div>
+        
+        <div id="discount-status"></div>
+      </div>
 
-  <footer>
-    <p>Телефон: <a href="tel:+1234567890" style="color:#d7ccc8;text-decoration:none;">+1234567890</a></p>
-    <p>Адрес: ул. Московская 267</p>
-  </footer>
+      <div class="customer-info">
+        <input type="text" id="customer-name" placeholder="Ваше имя" maxlength="30" required>
+        <input type="tel" id="customer-phone" placeholder="Номер телефона" required>
+        <textarea id="customer-address" placeholder="Адрес доставки" rows="2" required></textarea>
+        <textarea id="customer-comment" placeholder="Комментарий к заказу (необязательно)" rows="2"></textarea>
+        <label for="payment-method">Способ оплаты</label>
+        <select id="payment-method" required>
+          <option value="CASH">Наличными</option>
+          <option value="CARD">Картой курьеру</option>
+        </select>
+      </div>
+      <ul id="cart-items"></ul>
+      <p id="cart-total">Итог: 0 BYN</p>
+      <button id="order-button">Оформить заказ</button>
+    </div>
+</div>
+
+<div class="canvas-container">
+  <canvas id="qr-canvas"></canvas>
+</div>
+
+<footer>
+  <p>Телефон: <a href="tel:+1234567890" style="color:#d7ccc8;text-decoration:none;">+1234567890</a></p>
+  <p>Адрес: ул. Московская 267</p>
+</footer>
+
+<script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
+
 <script>
   const products = {
       burgers: [
@@ -237,6 +367,15 @@
       ]
     };
 
+    // Доступные купоны скидки
+    const discountCoupons = {
+      'DISCOUNT10': { percent: 10, description: 'Скидка 10%' },
+      'DISCOUNT15': { percent: 15, description: 'Скидка 15%' },
+      'DISCOUNT20': { percent: 20, description: 'Скидка 20%' },
+      'NEWUSER': { percent: 25, description: 'Скидка для новых клиентов 25%' },
+      'WEEKEND': { percent: 12, description: 'Скидка выходного дня 12%' }
+    };
+
     const cartToggle = document.getElementById("cart-toggle");
     const closeCart = document.getElementById("close-cart");
     const cart = document.getElementById("cart");
@@ -244,8 +383,13 @@
     const cartTotal = document.getElementById("cart-total");
     const cartCount = document.getElementById("cart-count");
     const orderButton = document.getElementById("order-button");
+    const qrFileInput = document.getElementById("qr-file-input");
+    const discountStatus = document.getElementById("discount-status");
+    const promoInput = document.getElementById("promo-input");
+    const promoApplyBtn = document.getElementById("promo-apply-btn");
 
     let cartData = [];
+    let appliedDiscount = null;
 
     function renderProducts(category, containerId) {
       const container = document.getElementById(containerId);
@@ -272,18 +416,43 @@
       updateCart();
     }
 
+    function calculateTotal() {
+      let total = 0;
+      cartData.forEach(item => {
+        total += item.price * item.quantity;
+      });
+      
+      if (appliedDiscount) {
+        const discountAmount = total * (appliedDiscount.percent / 100);
+        total = total - discountAmount;
+      }
+      
+      return total;
+    }
+
     function updateCart() {
       cartItems.innerHTML = "";
-      let total = 0;
+      let subtotal = 0;
       let count = 0;
+      
       cartData.forEach((item, index) => {
-        total += item.price * item.quantity;
+        subtotal += item.price * item.quantity;
         count += item.quantity;
         const li = document.createElement("li");
         li.innerHTML = `${item.name} x ${item.quantity} - ${(item.price * item.quantity).toFixed(2)} BYN <button onclick="removeFromCart(${index})">✖</button>`;
         cartItems.appendChild(li);
       });
-      cartTotal.innerText = `Итог: ${total.toFixed(2)} BYN`;
+
+      let totalText = '';
+      if (appliedDiscount) {
+        const discountAmount = subtotal * (appliedDiscount.percent / 100);
+        const finalTotal = subtotal - discountAmount;
+        totalText = `Подитог: ${subtotal.toFixed(2)} BYN<br>Скидка (${appliedDiscount.percent}%): -${discountAmount.toFixed(2)} BYN<br><strong>Итог: ${finalTotal.toFixed(2)} BYN</strong>`;
+      } else {
+        totalText = `Итог: ${subtotal.toFixed(2)} BYN`;
+      }
+      
+      cartTotal.innerHTML = totalText;
       cartCount.innerText = count;
     }
 
@@ -295,6 +464,117 @@
       }
       updateCart();
     }
+
+    function applyPromoCode(code) {
+      const upperCode = code.trim().toUpperCase();
+      
+      if (!upperCode) {
+        showDiscountStatus('❌ Введите промокод', true);
+        return;
+      }
+
+      if (discountCoupons[upperCode]) {
+        appliedDiscount = discountCoupons[upperCode];
+        showAppliedDiscount(appliedDiscount, upperCode);
+        updateCart();
+        promoInput.value = '';
+      } else {
+        showDiscountStatus(`❌ Неверный или недействительный промокод: ${upperCode}`, true);
+      }
+    }
+
+    function removeDiscount() {
+      appliedDiscount = null;
+      showDiscountStatus('');
+      updateCart();
+    }
+
+    function showAppliedDiscount(discount, code) {
+      discountStatus.innerHTML = `
+        <div class="applied-discount">
+          <span>✅ ${discount.description} (${code})</span>
+          <button class="remove-discount-btn" onclick="removeDiscount()">✖</button>
+        </div>
+      `;
+    }
+
+    function processQRCode(imageData) {
+      const canvas = document.getElementById('qr-canvas');
+      const ctx = canvas.getContext('2d');
+      
+      const img = new Image();
+      img.onload = function() {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height);
+        
+        if (code) {
+          const couponCode = code.data.trim().toUpperCase();
+          if (discountCoupons[couponCode]) {
+            appliedDiscount = discountCoupons[couponCode];
+            showAppliedDiscount(appliedDiscount, couponCode);
+            updateCart();
+          } else {
+            showDiscountStatus(`❌ Неверный или недействительный купон: ${couponCode}`, true);
+          }
+        } else {
+          showDiscountStatus('❌ QR-код не найден на изображении', true);
+        }
+      };
+      
+      img.onerror = function() {
+        showDiscountStatus('❌ Ошибка загрузки изображения', true);
+      };
+      
+      img.src = imageData;
+    }
+
+    function showDiscountStatus(message, isError = false) {
+      if (!message) {
+        discountStatus.innerHTML = '';
+        return;
+      }
+      discountStatus.innerHTML = `<div class="discount-info ${isError ? 'error' : ''}">${message}</div>`;
+    }
+
+    // Обработчики событий для промокода
+    promoApplyBtn.addEventListener('click', () => {
+      applyPromoCode(promoInput.value);
+    });
+
+    promoInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        applyPromoCode(promoInput.value);
+      }
+    });
+
+    promoInput.addEventListener('input', (e) => {
+      e.target.value = e.target.value.toUpperCase();
+    });
+
+    qrFileInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      if (!file.type.startsWith('image/')) {
+        showDiscountStatus('❌ Пожалуйста, выберите изображение', true);
+        return;
+      }
+
+      showDiscountStatus('⏳ Обработка QR-кода...', false);
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        processQRCode(e.target.result);
+      };
+      reader.onerror = function() {
+        showDiscountStatus('❌ Ошибка чтения файла', true);
+      };
+      reader.readAsDataURL(file);
+    });
 
     cartToggle.addEventListener("click", () => cart.classList.add("visible"));
     closeCart.addEventListener("click", () => cart.classList.remove("visible"));
@@ -331,8 +611,10 @@
         phone,
         address,
         comment,
-	    paymentMethod,
-        items: cartData
+        paymentMethod,
+        items: cartData,
+        discount: appliedDiscount,
+        total: calculateTotal()
       };
 
       fetch("/order", {
@@ -347,6 +629,6 @@
     renderProducts("burgers", "burgers");
     renderProducts("sides", "sides");
     renderProducts("drinks", "drinks");
-  </script>
+</script>
 </body>
 </html>
