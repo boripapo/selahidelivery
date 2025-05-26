@@ -2,7 +2,6 @@ from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
 from create_bot import admins, couriers
 
-
 def main_kb(user_telegram_id: int):
     builder = ReplyKeyboardBuilder()
 

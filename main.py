@@ -3,10 +3,8 @@ import logging
 
 from aiogram.types import BotCommand, BotCommandScopeDefault
 
-from create_bot import bot, admins, dp, db
-from handlers import commands, admin_panel, courier_panel
-from services.notify_admin_loop import notify_admin_loop
-
+from create_bot import bot, dp, db, admins
+from handlers import commands, admin_panel, courier_panel, util_handlers
 
 async def set_commands():
     commands = [BotCommand(command="start", description="Старт"),
@@ -32,12 +30,12 @@ async def main():
     dp.include_router(commands.router)
     dp.include_router(admin_panel.router)
     dp.include_router(courier_panel.router)
+    dp.include_router(util_handlers.router)
 
     dp.startup.register(start_bot)
     dp.shutdown.register(stop_bot)
     try:
         await db.create_pool()
-
         #task = asyncio.create_task(notify_admin_loop())
 
         await bot.delete_webhook(drop_pending_updates=True)

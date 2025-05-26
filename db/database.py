@@ -40,6 +40,16 @@ class Database:
             logging.exception(f"{e}")
             return False
 
+
+    #orders------------------------------------------------------------------------------------------------
+    async def get_order_by_id(self, order_id: int):
+        async with self.pool.acquire() as connection:
+            result = await connection.fetchrow(
+                "SELECT * FROM orders WHERE id = $1",
+                order_id
+            )
+            return result
+
     async def get_new_orders(self):
         async with self.pool.acquire() as connection:
             result = await connection.fetch(
@@ -59,6 +69,20 @@ class Database:
             status.value, courier_id, order_id
             )
 
+
+
+    #order_items-------------------------------------------------------------------------------------------
+    async def get_items_by_order_id(self, order_id: int):
+        async with self.pool.acquire() as connection:
+            result = await connection.fetch(
+                "SELECT * FROM order_items WHERE order_id = $1",
+                order_id
+            )
+        return result
+
+
+
+    #couriers----------------------------------------------------------------------------------------------
     async def get_available_couriers(self):
         async with self.pool.acquire() as connection:
             result = await connection.fetch(
@@ -71,5 +95,13 @@ class Database:
         async with self.pool.acquire() as connection:
             result = await connection.fetch(
                 "SELECT * FROM couriers"
+            )
+            return result
+
+    async def get_orders_by_courier_and_status(self, courier_id: int, status: OrderStatus):
+        async with self.pool.acquire() as connection:
+            result = await connection.fetch(
+                "SELECT * FROM orders WHERE courier_id = $1 AND status = $2",
+                courier_id, status
             )
             return result
