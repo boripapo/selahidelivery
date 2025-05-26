@@ -8,7 +8,6 @@ router = Router()
 @router.callback_query(F.data == "close_tab")
 async def close_tab(call: CallbackQuery):
     await call.message.delete()
-    await call.answer()
 
 @router.message(F.text == "⬅️ На главную")
 async def text_back_to_main(message: Message):

@@ -8,7 +8,7 @@ def main_kb(user_telegram_id: int):
     builder.button(text = "Проверить заказ")
     if user_telegram_id in admins:
         builder.button(text = "⚙️ Админ-панель")
-    if user_telegram_id in couriers:
+    if user_telegram_id in [int(courier["id"]) for courier in couriers]:
         builder.button(text = "🛵 Курьер-панель")
 
     builder.adjust(2,2)

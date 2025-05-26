@@ -58,16 +58,33 @@ class Database:
             )
             return result
 
+    async def get_orders_by_status(self, status: OrderStatus):
+        async with self.pool.acquire() as connection:
+            result = await connection.fetch(
+                "SELECT * FROM orders WHERE status = $1 ORDER BY id",
+                status.value
+            )
+            return result
+
     async def update_order_status(self, order_id: int, status: OrderStatus, courier_id: int | None = None):
         async with self.pool.acquire() as connection:
-            await connection.execute("""
-            UPDATE orders
-            SET status = $1,
-                courier_id = $2
-            WHERE id = $3
-            """,
-            status.value, courier_id, order_id
-            )
+            if courier_id is not None:
+                await connection.execute("""
+                UPDATE orders
+                SET status = $1,
+                    courier_id = $2
+                WHERE id = $3
+                """,
+                status.value, courier_id, order_id
+                )
+            else:
+                await connection.execute("""
+                UPDATE orders
+                SET status = $1
+                WHERE id = $2
+                """,
+                status.value, order_id
+                )
 
 
 
@@ -105,3 +122,12 @@ class Database:
                 courier_id, status
             )
             return result
+
+    async def update_courier_status(self, courier_id: int, status: CourierStatus):
+        async with self.pool.acquire() as connection:
+            await connection.execute("""
+            UPDATE couriers
+            SET status = $1
+            WHERE id = $2
+            """, status.value, courier_id
+            )

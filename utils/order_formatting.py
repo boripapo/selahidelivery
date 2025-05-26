@@ -14,7 +14,7 @@ def get_formatted_order(order, items):
 
     formatted_message = (
         f"<i>{created_at.strftime("%Y-%m-%d %H:%M")}</i>\n\n"
-        f"<b>{"Новый" if order["status"] == "NEW" else ""} Заказ:</b> <code>{order["id"]}</code>\n"
+        f"<b>{"Новый " if order["status"] == "NEW" else ""}заказ:</b> <code>{order["id"]}</code>\n"
         f"<b>Имя:</b> {order["name"]}\n"
         f"<b>Телефон:</b> <code>{order["phone"]}</code>\n"
         f"<b>Адрес:</b> {order["address"]}\n\n"

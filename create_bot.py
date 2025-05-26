@@ -28,7 +28,7 @@ async def get_couriers():
     records = await conn.fetch(
         "SELECT * FROM couriers"
     )
-    couriers = [int(record["id"]) for record in records]
+    couriers = records
     await conn.close()
 
 asyncio.run(get_couriers())
