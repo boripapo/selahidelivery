@@ -27,10 +27,10 @@ async def stop_bot():
         pass
 
 async def main():
+    dp.include_router(util_handlers.router)
     dp.include_router(commands.router)
     dp.include_router(admin_panel.router)
     dp.include_router(courier_panel.router)
-    dp.include_router(util_handlers.router)
 
     dp.startup.register(start_bot)
     dp.shutdown.register(stop_bot)

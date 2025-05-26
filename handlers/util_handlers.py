@@ -1,7 +1,6 @@
 from aiogram import Router, F
-from aiogram.types import CallbackQuery, Message, ReplyKeyboardRemove
+from aiogram.types import CallbackQuery, Message
 
-from create_bot import bot
 from keyboards.main_kb import main_kb
 
 router = Router()
@@ -13,9 +12,5 @@ async def close_tab(call: CallbackQuery):
 
 @router.message(F.text == "⬅️ На главную")
 async def text_back_to_main(message: Message):
-    msg = await bot.send_message(message.chat.id,
-                                 text="Меню:",
-                                 reply_markup=ReplyKeyboardRemove())
-    await msg.delete()
     await message.answer(text="Меню:",
                          reply_markup=main_kb(message.from_user.id))
