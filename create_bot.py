@@ -13,6 +13,7 @@ from decouple import config
 from db.database import Database
 
 admins = [int(admin_id) for admin_id in config("ADMINS").split(",")]
+managers = [int(manager_id) for manager_id in config("MANAGERS").split(",")]
 couriers = list()
 
 db = Database()

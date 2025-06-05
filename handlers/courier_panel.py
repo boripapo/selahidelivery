@@ -2,7 +2,7 @@ from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from create_bot import db, bot, admins, couriers
+from create_bot import db, bot, managers, couriers
 from db.enums import OrderStatus, CourierStatus
 from filters.IsCourierFilter import IsCourierFilter
 from keyboards.courier_kb import courier_kb
@@ -54,8 +54,8 @@ async def accept_order(call: CallbackQuery):
 async def reject_order(call: CallbackQuery):
     order_id = int(call.data.split("_")[1])
     await db.update_order_status(order_id=order_id, status=OrderStatus.REJECTED)
-    for admin in admins:
-        await bot.send_message(chat_id=admin, text=f"Курьер {couriers[call.from_user.id]} отказался от доставки заказа {order_id}. Назначьте курьера на заказ.")
+    for manager_id in managers:
+        await bot.send_message(chat_id=manager_id, text=f"Курьер {couriers[call.from_user.id]} отказался от доставки заказа {order_id}. Назначьте курьера на заказ.")
     await call.answer("Вы отказались от доставки этого заказа.")
     await call.message.delete()
 
@@ -70,8 +70,8 @@ async def delivered_order(call: CallbackQuery):
 async def cancel_order(call: CallbackQuery):
     order_id = int(call.data.split("_")[1])
     await db.update_order_status(order_id=order_id, status=OrderStatus.CANCELLED)
-    for admin in admins:
-        await bot.send_message(chat_id=admin, text=f"Курьер {couriers[call.from_user.id]} отменил доставку заказа {order_id}")
+    for manager_id in managers:
+        await bot.send_message(chat_id=manager_id, text=f"Курьер {couriers[call.from_user.id]} отменил доставку заказа {order_id}")
     await call.answer("Заказ был отменен.")
     await call.message.delete()
 

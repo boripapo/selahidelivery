@@ -1,6 +1,6 @@
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-def admin_order_process_kb(order_id):
+def manager_order_process_kb(order_id):
     builder = InlineKeyboardBuilder()
     builder.button(text="✅ Подтвердить", callback_data=f"approve_{order_id}")
     builder.button(text="🚫 Отклонить", callback_data=f"decline_{order_id}")

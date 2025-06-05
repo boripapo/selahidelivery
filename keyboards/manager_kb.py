@@ -1,10 +1,11 @@
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
 
-def admin_kb():
+def manager_kb():
     builder = ReplyKeyboardBuilder()
 
-    builder.button(text = "📖 История заказов")
+    builder.button(text = "❇️ Меню заказов")
+    #builder.button(text = "📖 История заказов")
     builder.button(text = "⬅️ На главную")
 
     builder.adjust(2,2)
