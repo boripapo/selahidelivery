@@ -1,4 +1,4 @@
-from aiogram import Router
+from aiogram import Router, F
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message
 
@@ -16,6 +16,7 @@ async def cmd_start(message: Message):
 async def cmd_menu(message: Message):
     await message.answer("Меню", reply_markup=main_kb(message.from_user.id))
 
+@router.message(F.text == "🤖 О боте")
 @router.message(Command("about"))
 async def cmd_about(message: Message):
     await message.answer(f"Selahi Delivery Bot v. {config("APP_VERSION")}")
