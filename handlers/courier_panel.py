@@ -12,6 +12,7 @@ from utils.order_formatting import get_formatted_order
 router = Router()
 router.message.filter(IsCourierFilter())
 
+@router.message(F.text == "⬅️ Курьер-панель")
 @router.message(F.text == "🛵 Курьер-панель")
 async def text_courier_panel(message: Message):
     await message.answer(text="Курьер-панель:",

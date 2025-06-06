@@ -50,7 +50,7 @@ class Database:
                 "SELECT * FROM orders WHERE id = $1",
                 order_id
             )
-            return result
+        return result
 
     async def get_new_orders(self):
         #Возвращает NEW заказы
@@ -59,10 +59,11 @@ class Database:
                 "SELECT * FROM orders WHERE status = $1 ORDER BY id",
                 OrderStatus.NEW.value
             )
-            return result
+        return result
 
     async def get_inactive_orders(self, date_from: datetime | None = None, date_to: datetime | None = None): #inactive -- CANCELLED, DELIVERED, CLOSED
-        #Возвращает все неактивные заказы за определенный промежуток. Если промежуток не указан - возвращает только CANCELLED и DELIVERED заказы (заказы за текущую смену)
+        #Возвращает все неактивные заказы за определенный промежуток.
+        #Если промежуток не указан - возвращает только CANCELLED и DELIVERED заказы (заказы за текущую смену)
         async with self.pool.acquire() as connection:
             if date_from is not None and date_to is not None:
                 result = await connection.fetch("""
@@ -75,7 +76,16 @@ class Database:
                     "SELECT * FROM orders WHERE status IN ($1, $2)",
                     OrderStatus.CANCELLED, OrderStatus.DELIVERED
                 )
-            return result
+        return result
+
+    async def get_all_orders_by_date(self, date_from: datetime = None, date_to: datetime = None):
+        #Возвращает все заказы за определенный промежуток
+        async with self.pool.acquire() as connection:
+            result = await connection.fetch(
+                "SELECT * FROM orders WHERE created_at BETWEEEN $1 AND $2",
+                date_from, date_to
+            )
+        return result
 
     async def get_orders_by_status(self, status: OrderStatus):
         #Возвращает заказы по статусу
@@ -84,7 +94,7 @@ class Database:
                 "SELECT * FROM orders WHERE status = $1 ORDER BY id",
                 status.value
             )
-            return result
+        return result
 
     async def get_orders_by_courier_and_status(self, courier_id: int, status: OrderStatus):
         #Возвращает заказы по курьеру и статусу
@@ -93,7 +103,7 @@ class Database:
                 "SELECT * FROM orders WHERE courier_id = $1 AND status = $2",
                 courier_id, status
             )
-            return result
+        return result
 
     async def update_order_status(self, order_id: int, status: OrderStatus, courier_id: int | None = None):
         #Изменяет статус заказа и id курьера, если он указан
@@ -114,6 +124,17 @@ class Database:
                 WHERE id = $2
                 """,
                 status.value, order_id
+                )
+
+    async def delete_orders_by_date(self, date_from: datetime | None = None, date_to: datetime = None):
+        async with self.pool.acquire() as connection:
+            if date_from is not None:
+                await connection.execute(
+                "DELETE FROM orders WHERE created at BETWEEN $1 AND $2",
+                date_from, date_to)
+            else:
+                await connection.execute(
+                "DELETE FROM orders WHERE created_at BETWEEN "
                 )
 
 
@@ -146,7 +167,7 @@ class Database:
             result = await connection.fetch(
                 "SELECT * FROM couriers"
             )
-            return result
+        return result
 
     async def update_courier_status(self, courier_id: int, status: CourierStatus):
         #Редактирует статус курьера

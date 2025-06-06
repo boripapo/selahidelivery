@@ -8,6 +8,7 @@ from keyboards.admin_kb import admin_kb
 router = Router()
 router.message.filter(IsAdminFilter())
 
+@router.message(F.text == "⬅️ Админ-панель")
 @router.message(F.text == "⚙️ Админ-панель")
 async def text_admin_panel(message: Message):
     await message.answer(text="Админ-панель:",
@@ -15,12 +16,12 @@ async def text_admin_panel(message: Message):
 
 #История заказов------------------------------------------------------------------------------------------------
 
-@router.message(F.text == "📖 История заказов")
+@router.message(F.text == "🔎 История заказов")
 async def text_orders_history(message: Message):
     builder = ReplyKeyboardBuilder()
     builder.button(text = "📅 Текущая смена")
     builder.button(text = "📒 Прошлые смены")
-    builder.button(text = "⬅️ Назад в админ-панель")
+    builder.button(text = "⬅️ Админ-панель")
     builder.adjust(2,2)
 
     await message.answer(text="История заказов:",
@@ -41,7 +42,7 @@ async def text_statistics(message: Message):
     builder = ReplyKeyboardBuilder()
     builder.button(text = "💵 Выручка")
     builder.button(text = "📋 Заказы")
-    builder.button(text = "⬅️ Назад в админ-панель")
+    builder.button(text = "⬅️ Админ-панель")
     builder.adjust(2,2)
 
     await message.answer(text="Статистика:",
@@ -60,9 +61,9 @@ async def text_orders_statistics(message: Message):
 @router.message(F.text == "♻️ Очистка базы данных")
 async def text_db_cleaning(message: Message):
     builder = ReplyKeyboardBuilder()
-    builder.button(text = "🧹 Очистить базу за эту смену")
-    builder.button(text = "🌀 Полная очистка базы")
-    builder.button(text = "⬅️ Назад в админ-панель")
+    builder.button(text = "🧹 Очистить текущую смену")
+    builder.button(text = "🌀 Полная очистка базы заказов")
+    builder.button(text = "⬅️ Админ-панель")
     builder.adjust(2,2)
 
     await message.answer(text="Очистка базы данных:",
@@ -80,11 +81,31 @@ async def text_db_cleaning_current_shift(message: Message):
 
 @router.callback_query(F.data == "yes_clean_current_shift")
 async def call_clean_current_shift(call: CallbackQuery):
-    pass
+    await call.answer(text="Текущая смена успешно очищена")
+    await call.message.delete()
 
-#Назад в админ-панель------------------------------------------------------------------------------------------------
+@router.message(F.text == "🌀 Полная очистка базы заказов")
+async def text_full_cleaning_orders(message: Message):
+    builder = InlineKeyboardBuilder()
+    builder.button(text="✅ Да", callback_data="yes_full_clean_orders")
+    builder.button(text="Закрыть окно", callback_data="close_tab")
+    builder.adjust(1)
 
-@router.message(F.text == "⬅️ Назад в админ-панель")
-async def text_admin_panel(message: Message):
-    await message.answer(text="Админ-панель:",
-                         reply_markup=admin_kb())
+    await message.answer(text="Вы уверены, что хотите полностью очистить базу заказов?",
+                         reply_markup=builder.as_markup())
+
+@router.callback_query(F.data == "yes_full_clean_orders")
+async def call_full_clean_warning(call: CallbackQuery):
+    builder = InlineKeyboardBuilder()
+    builder.button(text="✅ Очистить базу заказов", callback_data="start_full_clean_orders")
+    builder.button(text="Закрыть окно", callback_data="close_tab")
+    builder.adjust(1)
+
+    await call.message.answer(text="Это действие НЕЛЬЗЯ ОТМЕНИТЬ!",
+                         reply_markup=builder.as_markup())
+    await call.message.delete()
+
+@router.callback_query(F.data == "start_full_clean_orders")
+async def call_full_orders_clean(call: CallbackQuery):
+    await call.answer(text="База заказов успешно очищена.", show_alert=True)
+    await call.message.delete()
