@@ -126,6 +126,18 @@ class Database:
                 status.value, order_id
                 )
 
+    async def delete_order_by_id(self, order_id: int):
+        async with self.pool.acquire() as connection:
+            async with connection.transaction():
+                await connection.execute(
+                    "DELETE FROM order_items WHERE order_id = $1",
+                    order_id
+                )
+                await connection.execute(
+                    "DELETE FROM orders WHERE id = $1",
+                    order_id
+                )
+
     async def delete_orders_by_date(self, date_from: datetime | None = None, date_to: datetime = None):
         async with self.pool.acquire() as connection:
             if date_from is not None:

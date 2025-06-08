@@ -75,7 +75,3 @@ async def cancel_order(call: CallbackQuery):
         await bot.send_message(chat_id=manager_id, text=f"Курьер {couriers[call.from_user.id]} отменил доставку заказа {order_id}")
     await call.answer("Заказ был отменен.")
     await call.message.delete()
-
-
-
-

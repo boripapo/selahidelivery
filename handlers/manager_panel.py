@@ -1,6 +1,8 @@
 from datetime import datetime
 
 from aiogram import Router, F
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import CallbackQuery, Message, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 from asyncpg import Record
@@ -26,8 +28,9 @@ async def text_manager_panel(message: Message):
     await message.answer(text="Менеджер-панель:",
                          reply_markup=manager_kb())
 
-#Смена------------------------------------------------------------------------------------------------------------------
 
+
+#Смена------------------------------------------------------------------------------------------------------------------
 @router.message(F.text == "⏯️ Смена")
 async def text_shift(message: Message):
     builder = ReplyKeyboardBuilder()
@@ -68,8 +71,9 @@ async def text_close_shift(message: Message):
         f"Менеджер: {message.from_user.first_name} @{message.from_user.username}"
     )
 
-#Меню заказов-----------------------------------------------------------------------------------------------------------
 
+
+#Меню заказов-----------------------------------------------------------------------------------------------------------
 @router.message(F.text == "❇️ Меню заказов")
 async def text_orders_menu(message: Message):
     builder = ReplyKeyboardBuilder()
@@ -113,54 +117,80 @@ async def text_in_delivery_orders(message: Message):
                              reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Закрыть окно",callback_data="close_tab")]]))
 
 @router.message(F.text == "📁 История заказов")
-async def text_orders_history(message: Message): #Хендлер для вызова каталога
+async def text_orders_history(message: Message):
     orders = await db.get_inactive_orders()
     if not orders:
         await message.answer("История заказов пуста.")
         return
     await render_catalog(message, page=1, is_edit=False, items=orders)
 
-async def render_catalog(message, page: int = 1, is_edit: bool = False, items: list[Record] = None): #Функция для рендера
-    ITEMS_PER_PAGE = 10
+async def render_catalog(message, page: int = 1, is_edit: bool = False, items: list[Record] = None):
+    # Функция для рендера
+    ITEMS_PER_PAGE = 5
     total_pages = (len(items) - 1) // ITEMS_PER_PAGE + 1
 
     start = (page - 1) * ITEMS_PER_PAGE
     end = start + ITEMS_PER_PAGE
     page_items = items[start:end]
 
-    text = f"История заказов - <b>{page}/{total_pages}</b>\n\n"
+    catalog_kb = InlineKeyboardBuilder()
+    text = f"История заказов - <b>{page}/{total_pages}</b>"
     for order in page_items:
         order_items = await db.get_items_by_order_id(order["id"])
         total_price = 0
         for order_item in order_items:
             total_price += order_item["price"]
-        text += f"{order["id"]} : {order["name"]} : Сумма = {total_price}\n"
+        catalog_kb.button(text=f"{order["id"]} - {order["name"]} - {total_price}р.", callback_data=f"order:{order["id"]}")
+    catalog_kb.adjust(1)
 
-    kb = InlineKeyboardBuilder()
-
+    buttons_kb = InlineKeyboardBuilder()
     if page > 1:
-        kb.button(text="⬅️ Назад", callback_data=f"page:{page-1}")
+        buttons_kb.button(text="⬅️ Назад", callback_data=f"page:{page-1}")
     if page < total_pages:
-        kb.button(text="➡️ Вперёд", callback_data=f"page:{page+1}")
-    kb.button(text="❌ Закрыть", callback_data=f"page:close")
-    kb.adjust(2,1)
+        buttons_kb.button(text="➡️ Вперёд", callback_data=f"page:{page+1}")
+    buttons_kb.button(text="Закрыть окно", callback_data="close_tab")
+    buttons_kb.adjust(2,1)
+
+    catalog_kb.attach(buttons_kb)
 
     if is_edit:
-        await message.edit_text(text, reply_markup=kb.as_markup())
+        await message.edit_text(text, reply_markup=catalog_kb.as_markup())
     else:
-        await message.answer(text, reply_markup=kb.as_markup())
+        await message.answer(text, reply_markup=catalog_kb.as_markup())
 
 @router.callback_query(F.data.startswith("page:"))
-async def catalog_pagination(call: CallbackQuery): #Хендлер пагинации каталога
+async def catalog_pagination(call: CallbackQuery):
+    #Хендлер пагинации каталога
     _, page = call.data.split(":")
-    if page == "close":
-        await call.message.delete()
     await call.message.edit_reply_markup()
     await render_catalog(call.message, page=int(page), is_edit=True)
     await call.answer()
 
-#Инлайн оформление заказа-----------------------------------------------------------------------------------------------
+@router.callback_query(F.data.startswith("order:"))
+async def call_view_order(call: CallbackQuery):
+    _, order_id = call.data.split(":")
+    order_id = int(order_id)
 
+    kb = InlineKeyboardBuilder()
+    kb.button(text="🗑 Удалить", callback_data=f"delete_order:{order_id}")
+    kb.button(text="Закрыть окно", callback_data="close_tab")
+
+    await call.message.answer(get_formatted_order(await db.get_order_by_id(order_id), await db.get_items_by_order_id(order_id)),
+                              reply_markup = kb.as_markup())
+    await call.answer()
+
+@router.callback_query(F.data.startswith("delete_order:"))
+async def call_delete_order(call: CallbackQuery):
+    _, order_id = call.data.split(":")
+    order_id = int(order_id)
+
+    await db.delete_order_by_id(order_id)
+    await call.answer(f"Заказ {order_id} удален.")
+    await call.message.delete()
+
+
+
+#Инлайн оформление заказа-----------------------------------------------------------------------------------------------
 @router.callback_query(F.data.startswith("approve_"))
 async def order_approve(call: CallbackQuery):
     order_id = int(call.data.split("_")[1])
@@ -183,4 +213,3 @@ async def order_assign(call: CallbackQuery):
                            reply_markup=courier_order_process_kb(order_id))
     await call.message.answer(f"Заказ {order_id} был назначен курьеру {courier_id}")
     await call.message.delete()
-

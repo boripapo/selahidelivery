@@ -4,7 +4,7 @@ import logging
 from aiogram.types import BotCommand, BotCommandScopeDefault
 
 from create_bot import bot, dp, db, admins
-from handlers import commands, manager_panel, courier_panel, util_handlers, admin_panel
+from handlers import main_panel, manager_panel, courier_panel, util_handlers, admin_panel
 
 
 async def set_commands():
@@ -30,7 +30,7 @@ async def stop_bot():
 
 async def main():
     dp.include_router(util_handlers.router)
-    dp.include_router(commands.router)
+    dp.include_router(main_panel.router)
     dp.include_router(manager_panel.router)
     dp.include_router(courier_panel.router)
     dp.include_router(admin_panel.router)
@@ -39,7 +39,7 @@ async def main():
     dp.shutdown.register(stop_bot)
     try:
         await db.create_pool()
-        #task = asyncio.create_task(notify_admin_loop())
+        #task = asyncio.create_task(notify_manager_loop())
 
         await bot.delete_webhook(drop_pending_updates=True)
         await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
