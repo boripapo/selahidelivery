@@ -5,6 +5,7 @@ from aiogram.types import BotCommand, BotCommandScopeDefault
 
 from create_bot import bot, dp, db, admins
 from common.handlers import main_panel, util_handlers
+from roles.kitchen.handlers import kitchen_panel
 from roles.manager.handlers import manager_panel
 from roles.courier.handlers import courier_panel
 from roles.admin.handlers import admin_panel
@@ -37,6 +38,7 @@ async def main():
     dp.include_router(admin_panel.router)
     dp.include_router(manager_panel.router)
     dp.include_router(courier_panel.router)
+    dp.include_router(kitchen_panel.router)
     try:
         await db.create_pool()
 
