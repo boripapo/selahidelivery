@@ -9,5 +9,5 @@ class IsManagerFilter(BaseFilter):
     async def __call__(self, message: Message) -> bool:
         if message.from_user.id in managers:
             return True
-        await message.answer("❌ Недостаточно прав: Manager only.")
+        #await message.answer("❌ Недостаточно прав: Manager only.")
         return False

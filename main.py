@@ -5,6 +5,7 @@ from aiogram.types import BotCommand, BotCommandScopeDefault
 
 from create_bot import bot, dp, db, admins
 from handlers import main_panel, manager_panel, courier_panel, util_handlers, admin_panel
+from handlers.manager_panel import manager_broadcaster
 
 
 async def set_commands():
@@ -13,33 +14,28 @@ async def set_commands():
                 BotCommand(command="about", description="О боте")]
     await bot.set_my_commands(commands, BotCommandScopeDefault())
 
-async def start_bot():
+@dp.startup.register
+async def on_startup():
     await set_commands()
-    try:
-        for admin_id in admins:
-            await bot.send_message(admin_id, "Бот запущен.")
-    except:
-        pass
+    await manager_broadcaster.resume()
+    asyncio.create_task(manager_broadcaster.start())
+    await manager_broadcaster.resume()
+    for admin in admins:
+        await bot.send_message(chat_id=admin, text="Бот запущен.")
 
-async def stop_bot():
-    try:
-        for admin_id in admins:
-            await bot.send_message(admin_id, "Бот остановлен.")
-    except:
-        pass
+@dp.shutdown.register
+async def on_shutdown():
+    for admin in admins:
+        await bot.send_message(chat_id=admin, text="Бот остановлен.")
 
 async def main():
-    dp.include_router(util_handlers.router)
-    dp.include_router(main_panel.router)
-    dp.include_router(manager_panel.router)
-    dp.include_router(courier_panel.router)
-    dp.include_router(admin_panel.router)
-
-    dp.startup.register(start_bot)
-    dp.shutdown.register(stop_bot)
+    dp.include_router(util_handlers.util_router)
+    dp.include_router(main_panel.main_router)
+    dp.include_router(admin_panel.admin_router)
+    dp.include_router(manager_panel.manager_router)
+    dp.include_router(courier_panel.courier_router)
     try:
         await db.create_pool()
-        #task = asyncio.create_task(notify_manager_loop())
 
         await bot.delete_webhook(drop_pending_updates=True)
         await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
