@@ -6,8 +6,8 @@ from decouple import config
 
 import asyncpg
 
-from db.enums import OrderStatus, CourierStatus
-from models.OrderItem import OrderItem
+from common.db.enums import OrderStatus, CourierStatus
+from common.models.OrderItem import OrderItem
 
 class Database:
     def __init__(self):

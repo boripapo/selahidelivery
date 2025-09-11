@@ -10,11 +10,12 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from decouple import config
 
-from db.database import Database
+from common.db.database import Database
 
 admins = [int(admin_id) for admin_id in config("ADMINS").split(",")]
 managers = [int(manager_id) for manager_id in config("MANAGERS").split(",")]
 couriers = list()
+kitchen = [int(kitchen_id) for kitchen_id in config("KITCHEN").split(",")]
 
 db = Database()
 

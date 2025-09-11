@@ -10,5 +10,4 @@ class IsCourierFilter(BaseFilter):
 
         if message.from_user.id in [int(courier["id"]) for courier in couriers]:
             return True
-        #await message.answer(f"❌ Недостаточно прав: Courier only.{message.text}")
         return False

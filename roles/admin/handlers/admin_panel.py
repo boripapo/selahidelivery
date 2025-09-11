@@ -10,21 +10,21 @@ import matplotlib.dates as mdates
 from matplotlib.ticker import MaxNLocator
 
 from create_bot import bot, db
-from filters.IsAdminFilter import IsAdminFilter
-from keyboards.admin_kb import admin_kb
+from roles.admin.filters.IsAdminFilter import IsAdminFilter
+from roles.admin.keyboards.admin_kb import admin_kb
 
-admin_router = Router()
-admin_router.message.filter(IsAdminFilter())
+router = Router()
+router.message.filter(IsAdminFilter())
 
-@admin_router.message(F.text == "⬅️ Админ-панель")
-@admin_router.message(F.text == "⚙️ Админ-панель")
+@router.message(F.text == "⬅️ Админ-панель")
+@router.message(F.text == "⚙️ Админ-панель")
 async def text_admin_panel(message: Message):
     await message.answer(text="Админ-панель:",
                          reply_markup=admin_kb())
 
 #История заказов--------------------------------------------------------------------------------------------------------
 
-@admin_router.message(F.text == "🔎 История заказов")
+@router.message(F.text == "🔎 История заказов")
 async def text_orders_history(message: Message):
     builder = ReplyKeyboardBuilder()
     builder.button(text = "📅 Текущая смена")
@@ -35,25 +35,25 @@ async def text_orders_history(message: Message):
     await message.answer(text="История заказов:",
                          reply_markup=builder.as_markup(resize_keyboard=True))
 
-@admin_router.message(F.text == "📅 Текущая смена")
+@router.message(F.text == "📅 Текущая смена")
 async def text_current_shift(message: Message):
     await message.answer(text="blank")
     #await message.from_user.
 
-@admin_router.message(F.text == "📒 Прошлые смены")
+@router.message(F.text == "📒 Прошлые смены")
 async def text_past_shifts(message: Message):
     await message.answer(text="blank")
 
 #Тестовые данные--------------------------------------------------------------------------------------------------------
 
-@admin_router.message(F.text == "⏫ Заполнить БД")
+@router.message(F.text == "⏫ Заполнить БД")
 async def text_fill_db(message: Message):
     await db.fill_db_with_test_data()
     await message.answer(text = "БД заполнена тестовыми данными.")
 
 #Статистика-------------------------------------------------------------------------------------------------------------
 
-@admin_router.message(F.text == "📊 Статистика")
+@router.message(F.text == "📊 Статистика")
 async def text_statistics(message: Message):
     builder = ReplyKeyboardBuilder()
     builder.button(text = "💵 Выручка")
@@ -64,7 +64,7 @@ async def text_statistics(message: Message):
     await message.answer(text="Статистика:",
                          reply_markup=builder.as_markup(resize_keyboard=True))
 
-@admin_router.message(F.text == "💵 Выручка")
+@router.message(F.text == "💵 Выручка")
 async def text_revenue_statistics(message: Message):
     builder = InlineKeyboardBuilder()
     builder.button(text = "За сегодня", callback_data = "revenue_chart:1")
@@ -75,7 +75,7 @@ async def text_revenue_statistics(message: Message):
 
     await message.answer(text = "Выберите период:", reply_markup=builder.as_markup())
 
-@admin_router.message(F.text == "📋 Заказы")
+@router.message(F.text == "📋 Заказы")
 async def text_orders_statistics(message: Message):
     builder = InlineKeyboardBuilder()
     builder.button(text="За сегодня", callback_data="orders_chart:1")
@@ -86,7 +86,7 @@ async def text_orders_statistics(message: Message):
 
     await message.answer(text="Выберите период:", reply_markup=builder.as_markup())
 
-@admin_router.callback_query(F.data.startswith("orders_chart:"))
+@router.callback_query(F.data.startswith("orders_chart:"))
 async def call_orders_chart(call: CallbackQuery):
     period = int(call.data.split(":")[1])
     today = datetime.now()
@@ -120,7 +120,7 @@ async def call_orders_chart(call: CallbackQuery):
                              caption=f"Заказы за {period} дней, с {(today - timedelta(period)).strftime("%d.%m.%Y")} по {today.strftime("%d.%m.%Y")}")
     await call.message.delete()
 
-@admin_router.callback_query(F.data.startswith("revenue_chart:"))
+@router.callback_query(F.data.startswith("revenue_chart:"))
 async def call_revenue_chart(call: CallbackQuery):
     period = int(call.data.split(":")[1])
     today = datetime.now()
@@ -161,7 +161,7 @@ async def call_revenue_chart(call: CallbackQuery):
 
 #Очистка базы данных------------------------------------------------------------------------------------------------
 
-@admin_router.message(F.text == "♻️ Очистка базы данных")
+@router.message(F.text == "♻️ Очистка базы данных")
 async def text_db_cleaning(message: Message):
     builder = ReplyKeyboardBuilder()
     builder.button(text = "🧹 Очистить текущую смену")
@@ -172,7 +172,7 @@ async def text_db_cleaning(message: Message):
     await message.answer(text="Очистка базы данных:",
                          reply_markup=builder.as_markup(resize_keyboard=True))
 
-@admin_router.message(F.text == "🧹 Очистить текущую смену")
+@router.message(F.text == "🧹 Очистить текущую смену")
 async def text_db_cleaning_current_shift(message: Message):
     builder = InlineKeyboardBuilder()
     builder.button(text="✅ Да", callback_data="yes_clean_current_shift")
@@ -182,12 +182,12 @@ async def text_db_cleaning_current_shift(message: Message):
     await message.answer(text="Очистить текущую смену?",
                          reply_markup=builder.as_markup())
 
-@admin_router.callback_query(F.data == "yes_clean_current_shift")
+@router.callback_query(F.data == "yes_clean_current_shift")
 async def call_clean_current_shift(call: CallbackQuery):
     await call.answer(text="Текущая смена успешно очищена")
     await call.message.delete()
 
-@admin_router.message(F.text == "🌀 Полная очистка базы заказов")
+@router.message(F.text == "🌀 Полная очистка базы заказов")
 async def text_full_cleaning_orders(message: Message):
     builder = InlineKeyboardBuilder()
     builder.button(text="✅ Да", callback_data="yes_full_clean_orders")
@@ -197,7 +197,7 @@ async def text_full_cleaning_orders(message: Message):
     await message.answer(text="Вы уверены, что хотите полностью очистить базу заказов?",
                          reply_markup=builder.as_markup())
 
-@admin_router.callback_query(F.data == "yes_full_clean_orders")
+@router.callback_query(F.data == "yes_full_clean_orders")
 async def call_full_clean_warning(call: CallbackQuery):
     builder = InlineKeyboardBuilder()
     builder.button(text="✅ Очистить базу заказов", callback_data="start_full_clean_orders")
@@ -208,7 +208,7 @@ async def call_full_clean_warning(call: CallbackQuery):
                          reply_markup=builder.as_markup())
     await call.message.delete()
 
-@admin_router.callback_query(F.data == "start_full_clean_orders")
+@router.callback_query(F.data == "start_full_clean_orders")
 async def call_full_orders_clean(call: CallbackQuery):
     await db.full_orders_and_order_items_clean()
     await call.answer(text="База заказов успешно очищена.", show_alert=True)
