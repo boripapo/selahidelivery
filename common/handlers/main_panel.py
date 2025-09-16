@@ -14,7 +14,7 @@ async def cmd_start(message: Message):
 
 @router.message(Command("menu"))
 async def cmd_menu(message: Message):
-    await message.answer("Меню", reply_markup=main_kb(message.from_user.id))
+    await message.answer("Меню:", reply_markup=main_kb(message.from_user.id))
 
 @router.message(F.text == "🤖 О боте")
 @router.message(Command("about"))

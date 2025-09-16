@@ -5,6 +5,7 @@ def kitchen_kb():
     builder = ReplyKeyboardBuilder()
 
     builder.button(text = "❇️ Меню кухни")
+    builder.button(text = "")
     builder.button(text = "⬅️ На главную")
 
     builder.adjust(2,2)

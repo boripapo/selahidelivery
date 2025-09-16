@@ -11,9 +11,12 @@ from asyncpg import Record
 from create_bot import bot, db, admins
 from common.db.enums import OrderStatus
 from roles.manager.filters.IsManagerFilter import IsManagerFilter
+from roles.manager.keyboards.inline.edit_order_kb import edit_order_kb
 from roles.manager.keyboards.manager_kb import manager_kb
 from roles.manager.keyboards.inline.manager_order_process_kb import manager_order_process_kb
 from roles.courier.keyboards.inline.courier_order_process_kb import courier_order_process_kb
+from roles.manager.keyboards.orders_menu_kb import orders_menu_kb
+from roles.manager.keyboards.shift_kb import shift_kb
 from roles.manager.services.ManagerBroadcaster import ManagerBroadcaster
 from common.utils.order_formatting import get_formatted_order
 
@@ -26,8 +29,7 @@ manager_broadcaster = ManagerBroadcaster()
 open_shift : datetime = None
 close_shift : datetime = None
 
-@router.message(F.text == "⬅️ Менеджер-панель")
-@router.message(F.text == "📖 Менеджер-панель")
+@router.message(F.text == "⬅️ Менеджер-панель" or F.text == "📖 Менеджер-панель")
 async def manager_panel(message: Message):
     await message.answer(text="Менеджер-панель:",
                          reply_markup=manager_kb())
@@ -37,13 +39,7 @@ async def manager_panel(message: Message):
 #Смена------------------------------------------------------------------------------------------------------------------
 @router.message(F.text == "⏯️ Смена")
 async def shift(message: Message):
-    builder = ReplyKeyboardBuilder()
-    builder.button(text="▶️ Открыть смену")
-    builder.button(text="⏹️ Закрыть смену")
-    builder.button(text="⬅️ Менеджер-панель")
-    builder.adjust(2,2)
-
-    await message.answer(text="Смена:", reply_markup=builder.as_markup(resize_keyboard=True))
+    await message.answer(text="Смена:", reply_markup=shift_kb())
 
 @router.message(F.text == "▶️ Открыть смену")
 async def open_shift(message: Message):
@@ -90,15 +86,7 @@ async def close_shift(message: Message):
 #Меню заказов-----------------------------------------------------------------------------------------------------------
 @router.message(F.text == "❇️ Меню заказов")
 async def orders_menu(message: Message):
-    builder = ReplyKeyboardBuilder()
-    builder.button(text="🆕 Новые заказы")
-    builder.button(text="💢 Ожидающие заказы")
-    builder.button(text="🛵 Заказы в доставке")
-    builder.button(text="📁 История заказов")
-    builder.button(text="⬅️ Менеджер-панель")
-    builder.adjust(3,2)
-
-    await message.answer(text="Меню заказов:", reply_markup=builder.as_markup(resize_keyboard=True))
+    await message.answer(text="Меню заказов:", reply_markup=orders_menu_kb())
 
 @router.message(F.text == "🆕 Новые заказы")
 @router.callback_query(F.data == "show_new_orders")
@@ -115,7 +103,7 @@ async def new_orders(message: Union[Message, CallbackQuery]):
         return
     for order in orders:
         await chat_message.answer(get_formatted_order(order, await db.get_items_by_order_id(order["id"])),
-                             reply_markup=manager_order_process_kb(order["id"]))
+                             reply_markup=manager_order_process_kb(order))
 
 @router.message(F.text == "💢 Ожидающие заказы")
 async def pending_orders(message: Message):
@@ -125,7 +113,7 @@ async def pending_orders(message: Message):
         return
     for order in orders:
         await message.answer(text=get_formatted_order(order, await db.get_items_by_order_id(order["id"])),
-                             reply_markup=manager_order_process_kb(order["id"]))
+                             reply_markup=manager_order_process_kb(order))
 
 @router.message(F.text == "🛵 Заказы в доставке")
 async def in_delivery_orders(message: Message):
@@ -198,20 +186,7 @@ async def view_order(call: CallbackQuery):
         await call.answer()
         return
 
-    builder = InlineKeyboardBuilder()
-
-    if order["status"] == 'NEW':
-        builder.button(text="✅ Подтвердить", callback_data=f"approve:{order_id}")
-        builder.button(text="🚫 Отклонить", callback_data=f"decline:{order_id}")
-        builder.button(text="✏️ Редактировать", callback_data=f"edit_order:{order_id}")
-        builder.button(text="⭕️ Удалить", callback_data=f"delete_order:{order_id}")
-        builder.button(text="Закрыть окно", callback_data="close_tab")
-        builder.adjust(2, 1, 1)
-    else:
-        builder.button(text="🗑 Удалить", callback_data=f"delete_order:{order_id}")
-        builder.button(text="Закрыть окно", callback_data="close_tab")
-
-    await call.message.answer(get_formatted_order(order,items), reply_markup=builder.as_markup())
+    await call.message.answer(get_formatted_order(order,items), reply_markup=manager_order_process_kb(order))
     await call.answer()
 
 @router.callback_query(F.data.startswith("delete_order:"))
@@ -236,7 +211,7 @@ async def confirm_delete_order(call: CallbackQuery):
 
 
 #Инлайн оформление заказа-----------------------------------------------------------------------------------------------
-@router.callback_query(F.data.startswith("approve:"))
+@router.callback_query(F.data.startswith("approve_order:"))
 async def order_approve(call: CallbackQuery):
     order_id = int(call.data.split(":")[1])
 
@@ -249,7 +224,7 @@ async def order_approve(call: CallbackQuery):
     await call.message.edit_reply_markup(reply_markup=builder.as_markup())
     await call.answer()
 
-@router.callback_query(F.data.startswith("decline:"))
+@router.callback_query(F.data.startswith("decline_order:"))
 async def order_decline(call: CallbackQuery):
     order_id = int(call.data.split(":")[1])
 
@@ -266,14 +241,7 @@ class OrderEdit(StatesGroup):
 @router.callback_query(F.data.startswith("edit_order:"))
 async def edit_order(call: CallbackQuery):
     order_id = int(call.data.split(":")[1])
-
-    builder = InlineKeyboardBuilder()
-    builder.button(text="👤 Имя", callback_data=f"edit_name:{order_id}")
-    builder.button(text="🏠 Адрес", callback_data=f"edit_address:{order_id}")
-    builder.button(text="🛒 Товары", callback_data=f"edit_items:{order_id}")
-    builder.button(text="⬅️ Назад", callback_data=f"order_back:{order_id}")
-
-    await call.message.edit_reply_markup(reply_markup=builder.as_markup())
+    await call.message.edit_reply_markup(reply_markup=edit_order_kb())
 
 @router.callback_query(F.data.startswith("edit_"))
 async def order_edit(call: CallbackQuery, state: FSMContext):
@@ -314,8 +282,8 @@ async def order_edit_address(message: Message, state: FSMContext):
 async def order_edit_items(message: Message, state: FSMContext):
     await message.answer(text="Редактирование товаров в заказе пока недоступно.")
     await state.clear()
-#-------------------------------------------------------------------------------
 
+#-------------------------------------------------------------------------------
 
 @router.callback_query(F.data.startswith("assign:"))
 async def order_assign(call: CallbackQuery):
@@ -330,6 +298,6 @@ async def order_assign(call: CallbackQuery):
 
 @router.callback_query(F.data.startswith("order_back:"))
 async def order_back(call: CallbackQuery):
-    order_id = int(call.data.split(":")[1])
-    await call.message.edit_reply_markup(reply_markup=manager_order_process_kb(order_id))
+    order = await db.get_order_by_id(int(call.data.split(":")[1]))
+    await call.message.edit_reply_markup(reply_markup=manager_order_process_kb(order))
     await call.answer()
