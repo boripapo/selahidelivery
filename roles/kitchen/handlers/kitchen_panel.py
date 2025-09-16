@@ -9,5 +9,8 @@ router.message.filter(IsKitchenFilter())
 
 @router.message(F.text == "🍲 Кухня")
 async def kitchen_panel(message: Message):
-    await message.answer(text="Кухня:",
-                         reply_markup=kitchen_kb())
+    await message.answer(text = "Кухня:", reply_markup=kitchen_kb())
+
+@router.message(F.text == "♨️ Активные заказы")
+async def active_orders(message: Message):
+    await message.answer(text = "Активные заказы:")
